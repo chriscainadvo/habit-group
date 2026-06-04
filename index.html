@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>The Habit Group</title>
+<style>
+  :root{
+    --bg:#F6F6F4; --ink:#111111; --bar:#EAEAE7; --bar2:#e2e2de;
+    --muted:#9a9a96; --line:#e4e4e0; --white:#ffffff;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;
+    -webkit-tap-highlight-color:transparent}
+  html,body{background:var(--bg);color:var(--ink)}
+  body{padding:22px 16px 60px}
+  .wrap{max-width:760px;margin:0 auto}
+
+  /* top bar */
+  .top{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:22px}
+  .brand h1{font-weight:800;font-size:26px;letter-spacing:-1px;text-transform:uppercase;line-height:.95}
+  .brand .meta{margin-top:7px;font-weight:700;font-size:10px;letter-spacing:3px;color:var(--muted)}
+  .reset{font-weight:700;font-size:10px;letter-spacing:2px;color:var(--muted);background:none;
+    border:1px solid var(--line);padding:7px 11px;border-radius:8px;cursor:pointer;text-transform:uppercase}
+  .reset:active{background:#ededea}
+  .topright{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+  .mode{font-weight:800;font-size:9px;letter-spacing:2px;color:#8a8a86;border:1px solid var(--line);
+    padding:6px 10px;border-radius:7px;text-transform:uppercase}
+  .mode.edit{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .state.ro{cursor:default}
+
+  /* tabs */
+  .tabs{display:flex;gap:8px;margin-bottom:24px}
+  .tab{flex:1;font-weight:800;font-size:13px;letter-spacing:2px;text-transform:uppercase;
+    padding:14px;border:none;cursor:pointer;background:var(--bar);color:#8a8a86;
+    clip-path:polygon(14px 0,100% 0,calc(100% - 14px) 100%,0 100%)}
+  .tab.on{background:var(--ink);color:#fff}
+
+  /* date strip */
+  .datestrip{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 12px;margin-bottom:6px;
+    -webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .datestrip::-webkit-scrollbar{display:none}
+  .dchip{flex:none;min-width:62px;text-align:center;padding:11px 10px;background:var(--white);
+    border:1px solid var(--line);border-radius:12px;cursor:pointer}
+  .dchip.on{background:var(--ink);border-color:var(--ink)}
+  .dchip .dd{font-weight:800;font-size:18px;letter-spacing:-.5px}
+  .dchip .mon{font-weight:700;font-size:10px;letter-spacing:1.5px;color:var(--muted);margin-top:2px}
+  .dchip .dy{font-weight:700;font-size:9px;letter-spacing:1.5px;color:#c2c2bd;margin-top:3px}
+  .dchip.on .dd{color:#fff}.dchip.on .mon,.dchip.on .dy{color:#b9b9b4}
+  .dchip.done{border-color:#111}
+  .dchip .dot{width:5px;height:5px;border-radius:50%;background:var(--ink);margin:5px auto 0;opacity:0}
+  .dchip.logged .dot{opacity:1}.dchip.on.logged .dot{background:#fff}
+
+  .navrow{display:flex;justify-content:space-between;align-items:center;margin:4px 2px 18px}
+  .navrow .today{font-weight:700;font-size:11px;letter-spacing:2px;text-transform:uppercase;
+    background:none;border:1px solid var(--line);padding:8px 12px;border-radius:8px;cursor:pointer;color:#666}
+  .navrow .arrow{font-weight:800;font-size:20px;background:none;border:none;cursor:pointer;color:#111;padding:4px 12px}
+  .navrow .lbl{font-weight:800;font-size:15px;letter-spacing:.5px}
+
+  /* person + habit rows */
+  .pgroup{margin-bottom:22px}
+  .phead{display:flex;align-items:center;gap:13px;margin-bottom:11px}
+  .pmono{width:38px;height:38px;border:2px solid var(--ink);border-radius:50%;display:flex;
+    align-items:center;justify-content:center;font-weight:800;font-size:16px}
+  .pname{font-weight:800;font-size:19px;letter-spacing:-.3px}
+  .habit{display:flex;align-items:center;justify-content:space-between;gap:12px;
+    background:var(--white);border:1px solid var(--line);border-radius:13px;padding:14px 15px;margin-bottom:8px}
+  .hlabel{font-weight:600;font-size:15px}
+  .state{flex:none;min-width:104px;text-align:center;font-weight:800;font-size:12px;letter-spacing:1.5px;
+    text-transform:uppercase;padding:11px 14px;border-radius:9px;cursor:pointer;border:2px solid transparent;user-select:none}
+  .state.blank{background:transparent;border:2px dashed #cecec8;color:#b6b6b0}
+  .state.done{background:var(--ink);color:#fff}
+  .state.miss{background:transparent;border:2px solid var(--ink);color:var(--ink)}
+  .state.exempt{background:#e3e3df;color:#76766f}
+  .hint{font-weight:600;font-size:11px;letter-spacing:1px;color:#bdbdb8;text-align:center;margin-top:10px;text-transform:uppercase}
+
+  /* leaderboard */
+  .lbwrap{padding-top:2px}
+  .cols{display:flex;align-items:center;padding:0 14px 0 0;margin:8px 0 16px}
+  .cols .cr{width:54px;font-weight:700;font-size:9px;letter-spacing:2px;color:#bdbdb8;text-align:center}
+  .cols .cp{flex:1;font-weight:700;font-size:9px;letter-spacing:2px;color:#bdbdb8;padding-left:18px}
+  .cols .cs{width:58px;text-align:right;font-weight:700;font-size:9px;letter-spacing:2px;color:#bdbdb8}
+  .lbrow{display:flex;gap:9px;margin-bottom:13px;height:72px}
+  .lbrank{width:56px;flex:none;background:var(--ink);
+    clip-path:polygon(15px 0,100% 0,calc(100% - 15px) 100%,0 100%);
+    display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:26px}
+  .lbbar{flex:1;background:var(--bar);
+    clip-path:polygon(15px 0,100% 0,calc(100% - 15px) 100%,0 100%);
+    display:flex;align-items:center;padding:0 26px}
+  .lbbar.last{background:var(--ink)}
+  .lbmono{width:40px;height:40px;border:2px solid var(--ink);border-radius:50%;display:flex;
+    align-items:center;justify-content:center;font-weight:800;font-size:16px;flex:none}
+  .lbbar.last .lbmono{border-color:#fff;color:#fff}
+  .lbwho{margin-left:15px;flex:1;min-width:0}
+  .lbnm{font-weight:800;font-size:20px;letter-spacing:-.3px}
+  .lbsub{font-weight:700;font-size:9px;letter-spacing:1.5px;color:var(--muted);margin-top:2px}
+  .lbbar.last .lbnm{color:#fff}.lbbar.last .lbsub{color:#bdbdb8}
+  .lbstat{width:52px;text-align:right;font-weight:800;font-size:20px;letter-spacing:-.5px;flex:none}
+  .lbstat.dim{color:#8a8a84;font-size:19px}
+  .lbbar.last .lbstat{color:#fff}.lbbar.last .lbstat.dim{color:#cfcfca}
+
+  .danger{margin-top:6px;height:54px;background:var(--ink);
+    clip-path:polygon(15px 0,100% 0,calc(100% - 15px) 100%,0 100%);
+    display:flex;align-items:center;justify-content:center}
+  .danger span{color:#fff;font-weight:800;font-size:12px;letter-spacing:3px;text-transform:uppercase}
+  .lbfoot{margin-top:22px;display:flex;justify-content:space-between;align-items:center}
+  .lbfoot div{font-weight:700;font-size:10px;letter-spacing:2px;color:#b6b6b0;text-transform:uppercase}
+  .hide{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand">
+      <h1>The Habit<br>Group</h1>
+      <div class="meta">MON–FRI · 3–25 JUN 2026</div>
+    </div>
+    <button class="reset" id="resetBtn">Reset</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab on" id="tabDaily">Daily</button>
+    <button class="tab" id="tabBoard">Leaderboard</button>
+  </div>
+
+  <!-- DAILY -->
+  <div id="dailyView">
+    <div class="datestrip" id="dateStrip"></div>
+    <div class="navrow">
+      <button class="arrow" id="prevDay">‹</button>
+      <div class="lbl" id="dayLabel"></div>
+      <button class="arrow" id="nextDay">›</button>
+    </div>
+    <div id="dayPanel"></div>
+    <div class="hint">Tap a status to cycle · Done → Miss → Exempt → blank</div>
+  </div>
+
+  <!-- LEADERBOARD -->
+  <div id="boardView" class="hide">
+    <div class="lbwrap">
+      <div class="cols"><div class="cr">RANK</div><div class="cp">PLAYER</div>
+        <div class="cs">DONE</div><div class="cs">MISS</div><div class="cs">SCORE</div></div>
+      <div id="boardRows"></div>
+      <div class="danger"><span>Last place → Big Friday dinner</span></div>
+      <div class="lbfoot"><div id="logged">0/14 days logged</div><div>No update by EOD = miss</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const PEOPLE=[
+  {id:'george',name:'George',mono:'G',sub:'VALUES · 6AM WAKE',
+   habits:[{id:'values',label:'15-min values session'},{id:'wake',label:'6am wake-up',exempt:true}]},
+  {id:'chris',name:'Chris',mono:'C',sub:'MEDITATE · READ',
+   habits:[{id:'med',label:'Meditate 10 min'},{id:'read',label:'Read 15 min'}]},
+  {id:'paddy',name:'Paddy',mono:'P',sub:'2H DEEP WORK',
+   habits:[{id:'deep',label:'2h uninterrupted deep work'}]},
+];
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DY=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+function buildDays(){
+  const out=[]; let d=new Date(2026,5,3); const end=new Date(2026,5,25);
+  while(d<=end){ if(d.getDay()>=1&&d.getDay()<=5){
+    out.push({key:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`,
+      dd:d.getDate(),mon:MON[d.getMonth()],dy:DY[d.getDay()]});
+  } d=new Date(d.getTime()+86400000);} return out;
+}
+const DAYS=buildDays();
+const KEY='habitgroup_v1';
+let store={};
+let selIdx=0;
+
+async function loadStore(){
+  try{ const v=localStorage.getItem(KEY); if(v) store=JSON.parse(v); }catch(e){}
+}
+async function saveStore(){
+  try{ localStorage.setItem(KEY,JSON.stringify(store)); }catch(e){}
+}
+
+function getState(dayKey,pid,hid){ return store?.[dayKey]?.[pid]?.[hid]||'blank'; }
+function setState(dayKey,pid,hid,v){
+  store[dayKey]=store[dayKey]||{}; store[dayKey][pid]=store[dayKey][pid]||{};
+  if(v==='blank') delete store[dayKey][pid][hid]; else store[dayKey][pid][hid]=v;
+}
+function nextState(cur,exempt){
+  const seq = exempt ? ['blank','done','miss','exempt'] : ['blank','done','miss'];
+  return seq[(seq.indexOf(cur)+1)%seq.length];
+}
+function dayLogged(dayKey){
+  const d=store[dayKey]; if(!d) return false;
+  return Object.values(d).some(p=>Object.keys(p).length>0);
+}
+
+function renderStrip(){
+  const s=document.getElementById('dateStrip'); s.innerHTML='';
+  DAYS.forEach((d,i)=>{
+    const c=document.createElement('div');
+    c.className='dchip'+(i===selIdx?' on':'')+(dayLogged(d.key)?' logged':'');
+    c.innerHTML=`<div class="dd">${d.dd}</div><div class="mon">${d.mon}</div><div class="dy">${d.dy}</div><div class="dot"></div>`;
+    c.onclick=()=>{selIdx=i;renderDaily();};
+    s.appendChild(c);
+  });
+  const on=s.children[selIdx]; if(on) on.scrollIntoView({inline:'center',block:'nearest'});
+}
+function renderPanel(){
+  const day=DAYS[selIdx];
+  document.getElementById('dayLabel').textContent=`${day.dy} ${day.dd} ${day.mon}`;
+  const p=document.getElementById('dayPanel'); p.innerHTML='';
+  PEOPLE.forEach(person=>{
+    const g=document.createElement('div'); g.className='pgroup';
+    g.innerHTML=`<div class="phead"><div class="pmono">${person.mono}</div>
+      <div><div class="pname">${person.name}</div></div></div>`;
+    person.habits.forEach(h=>{
+      const cur=getState(day.key,person.id,h.id);
+      const row=document.createElement('div'); row.className='habit';
+      const txt={blank:'—',done:'Done',miss:'Miss',exempt:'Exempt'}[cur];
+      row.innerHTML=`<div class="hlabel">${h.label}</div>
+        <div class="state ${cur}">${txt}</div>`;
+      row.querySelector('.state').onclick=async()=>{
+        setState(day.key,person.id,h.id,nextState(cur,h.exempt));
+        await saveStore(); renderDaily(); renderBoard();
+      };
+      g.appendChild(row);
+    });
+    p.appendChild(g);
+  });
+}
+function renderDaily(){ renderStrip(); renderPanel(); }
+
+function standings(){
+  return PEOPLE.map(person=>{
+    let done=0,miss=0;
+    DAYS.forEach(d=>person.habits.forEach(h=>{
+      const s=getState(d.key,person.id,h.id);
+      if(s==='done')done++; else if(s==='miss')miss++;
+    }));
+    const denom=done+miss;
+    return {...person,done,miss,score:denom?done/denom:0,denom};
+  }).sort((a,b)=> b.score-a.score || b.done-a.done || a.miss-b.miss);
+}
+function renderBoard(){
+  const rows=standings();
+  const anyData=rows.some(r=>r.denom>0);
+  const allEqual=rows.every(r=>r.score===rows[0].score && r.done===rows[0].done);
+  const c=document.getElementById('boardRows'); c.innerHTML='';
+  rows.forEach((r,i)=>{
+    const isLast = anyData && !allEqual && i===rows.length-1;
+    const el=document.createElement('div'); el.className='lbrow';
+    el.innerHTML=`<div class="lbrank">${i+1}</div>
+      <div class="lbbar${isLast?' last':''}">
+        <div class="lbmono">${r.mono}</div>
+        <div class="lbwho"><div class="lbnm">${r.name}</div><div class="lbsub">${r.sub}</div></div>
+        <div class="lbstat">${r.done}</div>
+        <div class="lbstat">${r.miss}</div>
+        <div class="lbstat dim">${Math.round(r.score*100)}%</div>
+      </div>`;
+    c.appendChild(el);
+  });
+  const logged=DAYS.filter(d=>dayLogged(d.key)).length;
+  document.getElementById('logged').textContent=`${logged}/${DAYS.length} days logged`;
+}
+
+// tabs
+function show(which){
+  const d=which==='daily';
+  document.getElementById('dailyView').classList.toggle('hide',!d);
+  document.getElementById('boardView').classList.toggle('hide',d);
+  document.getElementById('tabDaily').classList.toggle('on',d);
+  document.getElementById('tabBoard').classList.toggle('on',!d);
+  if(!d) renderBoard();
+}
+document.getElementById('tabDaily').onclick=()=>show('daily');
+document.getElementById('tabBoard').onclick=()=>show('board');
+document.getElementById('prevDay').onclick=()=>{if(selIdx>0){selIdx--;renderDaily();}};
+document.getElementById('nextDay').onclick=()=>{if(selIdx<DAYS.length-1){selIdx++;renderDaily();}};
+</script>
+<script>
+document.getElementById('resetBtn').onclick=async()=>{
+  if(confirm('Clear all logged scores? This cannot be undone.')){
+    store={}; await saveStore(); renderDaily(); renderBoard();
+  }
+};
+(async()=>{
+  await loadStore();
+  const t=new Date();
+  const tk=`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+  const idx=DAYS.findIndex(d=>d.key===tk);
+  if(idx>=0) selIdx=idx;
+  renderDaily(); renderBoard();
+})();
+</script>
+</body>
+</html>

@@ -139,7 +139,7 @@
   <div id="boardView" class="hide">
     <div class="lbwrap">
       <div class="cols"><div class="cr">RANK</div><div class="cp">PLAYER</div>
-        <div class="cs">DONE</div><div class="cs">MISS</div><div class="cs">SCORE</div></div>
+        <div class="cs">PTS</div><div class="cs">DAYS</div><div class="cs">SCORE</div></div>
       <div id="boardRows"></div>
       <div class="danger"><span>Last place → Big Friday dinner</span></div>
       <div class="lbfoot"><div id="logged">0/14 days logged</div><div>No update by EOD = miss</div></div>
@@ -229,19 +229,21 @@ function renderDaily(){ renderStrip(); renderPanel(); }
 
 function standings(){
   return PEOPLE.map(person=>{
-    let done=0,miss=0;
-    DAYS.forEach(d=>person.habits.forEach(h=>{
-      const s=getState(d.key,person.id,h.id);
-      if(s==='done')done++; else if(s==='miss')miss++;
-    }));
-    const denom=done+miss;
-    return {...person,done,miss,score:denom?done/denom:0,denom};
-  }).sort((a,b)=> b.score-a.score || b.done-a.done || a.miss-b.miss);
+    let pts=0,days=0;
+    DAYS.forEach(d=>{
+      const states=person.habits.map(h=>getState(d.key,person.id,h.id));
+      if(states.some(s=>s==='blank')) return;            // day not fully logged yet
+      days++;
+      const active=states.filter(s=>s!=='exempt');       // exempt habits don't count
+      if(active.length===0 || active.every(s=>s==='done')) pts++;  // all done = the point
+    });
+    return {...person,pts,days,score:days?pts/days:0,denom:days};
+  }).sort((a,b)=> b.pts-a.pts || b.score-a.score || b.days-a.days);
 }
 function renderBoard(){
   const rows=standings();
   const anyData=rows.some(r=>r.denom>0);
-  const allEqual=rows.every(r=>r.score===rows[0].score && r.done===rows[0].done);
+  const allEqual=rows.every(r=>r.pts===rows[0].pts && r.days===rows[0].days);
   const c=document.getElementById('boardRows'); c.innerHTML='';
   rows.forEach((r,i)=>{
     const isLast = anyData && !allEqual && i===rows.length-1;
@@ -250,8 +252,8 @@ function renderBoard(){
       <div class="lbbar${isLast?' last':''}">
         <div class="lbmono">${r.mono}</div>
         <div class="lbwho"><div class="lbnm">${r.name}</div><div class="lbsub">${r.sub}</div></div>
-        <div class="lbstat">${r.done}</div>
-        <div class="lbstat">${r.miss}</div>
+        <div class="lbstat">${r.pts}</div>
+        <div class="lbstat">${r.days}</div>
         <div class="lbstat dim">${Math.round(r.score*100)}%</div>
       </div>`;
     c.appendChild(el);

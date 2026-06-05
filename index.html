@@ -111,6 +111,16 @@ body{background:linear-gradient(135deg,#FF8AC2,#A78BFA,#5EC9FF,#5EE7C9);backgrou
 .paytag{font-weight:700;font-size:12px;color:#fff;background:linear-gradient(135deg,#FF5DA2,#FF4D6D);
   padding:5px 9px;border-radius:999px;white-space:nowrap}
 .lbfoot{text-align:center;color:#fff;font-weight:600;font-size:13px;margin-top:14px;opacity:.95}
+.lbdate{text-align:center;color:#fff;font-weight:700;font-size:17px;margin:2px 0 8px;
+  text-shadow:0 2px 6px rgba(90,30,120,.4)}
+.sharebtn{display:block;width:100%;margin-top:18px;padding:17px;border:none;border-radius:18px;cursor:pointer;
+  font-weight:700;font-size:18px;color:#fff;background:linear-gradient(135deg,#FF5DA2,#A45DFF,#4F8DFF);
+  box-shadow:0 6px 0 rgba(122,44,138,.4)}
+.sharebtn:active{transform:translateY(3px);box-shadow:0 3px 0 rgba(122,44,138,.4)}
+#toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);opacity:0;
+  background:#2A2350;color:#fff;font-weight:600;font-size:14px;padding:11px 20px;border-radius:999px;
+  box-shadow:0 8px 24px rgba(0,0,0,.3);transition:all .25s;pointer-events:none;z-index:80}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .hide{display:none}
 </style>
 </head>
@@ -140,12 +150,15 @@ body{background:linear-gradient(135deg,#FF8AC2,#A78BFA,#5EC9FF,#5EE7C9);backgrou
   </div>
 
   <div id="boardView" class="hide">
+    <div class="lbdate" id="lbdate"></div>
     <div class="lbtop" id="lbtop">let the games begin 🎉</div>
     <div class="cols"><div class="cp">PLAYER</div><div class="cs">⭐PTS</div><div class="cs">DAYS</div><div class="cs">%</div></div>
     <div id="boardRows"></div>
     <div class="lbfoot" id="logged">🔥 0/17 days logged</div>
+    <button class="sharebtn" id="shareBtn">📤 Share to the group</button>
   </div>
 </div>
+<div id="toast"></div>
 
 <script>
 const PEOPLE=[
@@ -170,7 +183,11 @@ const KEY='habitgroup_v1';
 let store={}; let selIdx=0;
 
 async function loadStore(){ try{const v=localStorage.getItem(KEY); if(v) store=JSON.parse(v);}catch(e){} }
-async function saveStore(){ try{localStorage.setItem(KEY,JSON.stringify(store));}catch(e){} }
+async function saveStore(){ try{localStorage.setItem(KEY,JSON.stringify(store)); toast('saved ✓');}catch(e){ toast('⚠️ could not save'); } }
+function toast(msg){ const el=document.getElementById('toast'); if(!el) return; el.textContent=msg;
+  el.classList.add('show'); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),1100); }
+function todayStr(){ return new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',timeZone:'America/Chicago'}); }
+function austinKey(){ return new Date().toLocaleDateString('en-CA',{timeZone:'America/Chicago'}); }
 
 function getState(dk,pid,hid){ return store?.[dk]?.[pid]?.[hid]||'blank'; }
 function setState(dk,pid,hid,v){ store[dk]=store[dk]||{}; store[dk][pid]=store[dk][pid]||{};
@@ -258,6 +275,7 @@ function renderBoard(){
   });
   const logged=DAYS.filter(d=>dayLogged(d.key)).length;
   document.getElementById('logged').textContent=`🔥 ${logged}/${DAYS.length} days logged`;
+  document.getElementById('lbdate').textContent=`📅 ${todayStr()}`;
   const top=document.getElementById('lbtop');
   if(anyData&&!allEqual){ top.innerHTML=`👑 ${rows[0].name} out front · 💸 ${rows[rows.length-1].name} on dinner duty`; }
   else { top.textContent='all square — let the games begin 🎉'; }
@@ -275,6 +293,58 @@ function confetti(){
     if(t<150)requestAnimationFrame(frame); else {cv.style.opacity=0;setTimeout(()=>ctx.clearRect(0,0,W,H),300);}})();
 }
 
+function rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();}
+function drawShareCard(){
+  const rows=standings();
+  const anyData=rows.some(r=>r.denom>0);
+  const allEqual=rows.every(r=>r.pts===rows[0].pts&&r.days===rows[0].days);
+  const W=1080,top=250,rh=180,H=top+rows.length*rh+200;
+  const cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');
+  const g=x.createLinearGradient(0,0,W,H);
+  ['#FF5E62','#FF9F40','#FFE15D','#37D67A','#4F8DFF','#A45DFF'].forEach((c,i,a)=>g.addColorStop(i/(a.length-1),c));
+  x.fillStyle=g;x.fillRect(0,0,W,H);
+  x.textAlign='center';x.fillStyle='#fff';
+  x.font='700 70px Fredoka,sans-serif';x.fillText('🏆 THE HABIT GROUP',W/2,120);
+  x.font='600 40px Fredoka,sans-serif';x.fillText('📅 '+todayStr(),W/2,182);
+  const medals=['👑','🥈','🥉'];
+  let y=top;const cx=70,cw=W-140;
+  rows.forEach((r,i)=>{
+    const first=anyData&&!allEqual&&i===0, payer=anyData&&!allEqual&&i===rows.length-1;
+    rr(x,cx,y,cw,150,30);x.fillStyle=first?'#FFF0B8':payer?'#FFDCEC':'#FFFFFF';x.fill();
+    x.fillStyle=r.color;rr(x,cx,y,16,150,8);x.fill();
+    x.textAlign='left';x.font='62px Fredoka,sans-serif';x.fillText(medals[i]||'•',cx+34,y+98);
+    x.font='52px Fredoka,sans-serif';x.fillText(r.av,cx+150,y+98);
+    x.fillStyle='#3B2D5E';x.font='700 48px Fredoka,sans-serif';x.fillText(r.name,cx+235,y+85);
+    x.font='600 28px Fredoka,sans-serif';x.fillStyle=payer?'#E0357F':'#9580B5';
+    x.fillText(payer?'💸 buying dinner':r.sub,cx+235,y+125);
+    x.textAlign='right';x.fillStyle='#3B2D5E';x.font='700 56px Fredoka,sans-serif';
+    x.fillText(r.pts+' pts',cx+cw-200,y+95);
+    x.fillStyle='#FF5DA2';x.font='600 44px Fredoka,sans-serif';x.fillText(Math.round(r.score*100)+'%',cx+cw-40,y+95);
+    y+=rh;
+  });
+  const logged=DAYS.filter(d=>dayLogged(d.key)).length;
+  x.textAlign='center';x.fillStyle='#fff';x.font='600 34px Fredoka,sans-serif';
+  x.fillText('🔥 '+logged+'/'+DAYS.length+' days in',W/2,y+30);
+  x.font='600 36px Fredoka,sans-serif';
+  x.fillText('😬 last place buys the Big Friday dinner 🍽️',W/2,H-50);
+  return cv;
+}
+async function shareBoard(){
+  try{ if(document.fonts&&document.fonts.ready) await document.fonts.ready; }catch(e){}
+  const cv=drawShareCard();
+  cv.toBlob(async(blob)=>{
+    const file=new File([blob],'habit-group.png',{type:'image/png'});
+    try{
+      if(navigator.canShare&&navigator.canShare({files:[file]})){
+        await navigator.share({files:[file],text:'The Habit Group 🏆 '+todayStr()}); return;
+      }
+    }catch(e){ if(e&&e.name==='AbortError') return; }
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='habit-group.png';
+    document.body.appendChild(a);a.click();a.remove();
+    toast('image downloaded ⬇️');
+  },'image/png');
+}
+
 function show(which){
   const d=which==='daily';
   document.getElementById('dailyView').classList.toggle('hide',!d);
@@ -285,12 +355,12 @@ function show(which){
 }
 document.getElementById('tabDaily').onclick=()=>show('daily');
 document.getElementById('tabBoard').onclick=()=>show('board');
+document.getElementById('shareBtn').onclick=shareBoard;
 document.getElementById('prevDay').onclick=()=>{if(selIdx>0){selIdx--;renderDaily();}};
 document.getElementById('nextDay').onclick=()=>{if(selIdx<DAYS.length-1){selIdx++;renderDaily();}};
 (async()=>{
   await loadStore();
-  const t=new Date();
-  const tk=`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+  const tk=austinKey();
   const idx=DAYS.findIndex(d=>d.key===tk); if(idx>=0) selIdx=idx;
   renderDaily(); renderBoard();
 })();

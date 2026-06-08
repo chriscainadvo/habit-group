@@ -56,6 +56,8 @@ body{background:linear-gradient(135deg,#FF8AC2,#A78BFA,#5EC9FF,#5EE7C9);backgrou
 .dchip.on .dd,.dchip.on .mon,.dchip.on .dy{color:#fff}
 .dchip .dot{font-size:11px;line-height:1;height:13px;margin-top:2px;opacity:0}
 .dchip.logged .dot{opacity:1}
+.dchip.wknd .dy{color:#FF6BA8;font-weight:700}
+.dchip.wknd.on .dy{color:#FFE3F0}
 
 .navrow{display:flex;justify-content:space-between;align-items:center;margin:4px 2px 16px}
 .arrow{background:rgba(255,255,255,.85);border:none;width:42px;height:42px;border-radius:50%;
@@ -129,7 +131,7 @@ body{background:linear-gradient(135deg,#FF8AC2,#A78BFA,#5EC9FF,#5EE7C9);backgrou
 <div class="wrap">
   <div class="hero">
     <h1><span class="spark">✨</span> The Habit Group <span class="spark">✨</span></h1>
-    <div class="sub">Mon–Fri · 3–25 Jun · 1 point a day if you do it all</div>
+    <div class="sub">Every day · 3–25 Jun · 1 point a day if you do it all</div>
     <div class="pill">😬 last place buys the Big Friday dinner 🍽️</div>
   </div>
 
@@ -173,10 +175,10 @@ const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','De
 const DY=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 function buildDays(){
   const out=[]; let d=new Date(2026,5,3); const end=new Date(2026,5,25);
-  while(d<=end){ if(d.getDay()>=1&&d.getDay()<=5){
+  while(d<=end){
     out.push({key:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`,
-      dd:d.getDate(),mon:MON[d.getMonth()],dy:DY[d.getDay()]});
-  } d=new Date(d.getTime()+86400000);} return out;
+      dd:d.getDate(),mon:MON[d.getMonth()],dy:DY[d.getDay()],wknd:(d.getDay()===0||d.getDay()===6)});
+    d=new Date(d.getTime()+86400000);} return out;
 }
 const DAYS=buildDays();
 const KEY='habitgroup_v1';
@@ -205,7 +207,7 @@ function renderStrip(){
   const s=document.getElementById('dateStrip'); s.innerHTML='';
   DAYS.forEach((d,i)=>{
     const c=document.createElement('div');
-    c.className='dchip'+(i===selIdx?' on':'')+(dayLogged(d.key)?' logged':'');
+    c.className='dchip'+(i===selIdx?' on':'')+(dayLogged(d.key)?' logged':'')+(d.wknd?' wknd':'');
     c.innerHTML=`<div class="dd">${d.dd}</div><div class="mon">${d.mon}</div><div class="dy">${d.dy}</div><div class="dot">✅</div>`;
     c.onclick=()=>{selIdx=i;renderDaily();};
     s.appendChild(c);

@@ -170,6 +170,8 @@ const PEOPLE=[
    habits:[{id:'med',label:'Meditate 10 min',emoji:'🧠'},{id:'read',label:'Read 15 min',emoji:'📚'}]},
   {id:'paddy',name:'Paddy',av:'⚡',color:'#FF5DA2',sub:'deep work beast',
    habits:[{id:'deep',label:'2h uninterrupted deep work',emoji:'💻'}]},
+  {id:'harry',name:'Harry',av:'📵',color:'#FF8A3D',sub:'no scroll mode',
+   habits:[{id:'scroll',label:'No social scrolling',emoji:'📱'}]},
 ];
 const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const DY=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -265,7 +267,7 @@ function renderBoard(){
     const first=anyData&&!allEqual&&i===0;
     const payer=anyData&&!allEqual&&i===rows.length-1;
     const el=document.createElement('div'); el.className='lbrow'+(first?' first':'')+(payer?' payer':'');
-    el.innerHTML=`<div class="medal">${medals[i]||'•'}</div>
+    el.innerHTML=`<div class="medal">${medals[i]||(i+1)}</div>
       <div class="lbbar" style="--pc:${r.color}">
         <div class="lbav">${r.av}</div>
         <div class="lbwho"><div class="lbnm">${r.name} ${payer?'<span class=paytag>💸 paying</span>':''}</div><div class="lbsub">${r.sub}</div></div>
@@ -314,7 +316,7 @@ function drawShareCard(){
     const first=anyData&&!allEqual&&i===0, payer=anyData&&!allEqual&&i===rows.length-1;
     rr(x,cx,y,cw,150,30);x.fillStyle=first?'#FFF0B8':payer?'#FFDCEC':'#FFFFFF';x.fill();
     x.fillStyle=r.color;rr(x,cx,y,16,150,8);x.fill();
-    x.textAlign='left';x.font='62px Fredoka,sans-serif';x.fillText(medals[i]||'•',cx+34,y+98);
+    x.textAlign='left';x.font='62px Fredoka,sans-serif';x.fillText(medals[i]||String(i+1),cx+34,y+98);
     x.font='52px Fredoka,sans-serif';x.fillText(r.av,cx+150,y+98);
     x.fillStyle='#3B2D5E';x.font='700 48px Fredoka,sans-serif';x.fillText(r.name,cx+235,y+85);
     x.font='600 28px Fredoka,sans-serif';x.fillStyle=payer?'#E0357F':'#9580B5';

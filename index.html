@@ -91,7 +91,7 @@ body{background:linear-gradient(135deg,#FF8AC2,#A78BFA,#5EC9FF,#5EE7C9);backgrou
   text-shadow:0 2px 6px rgba(90,30,120,.4)}
 .cols{display:flex;align-items:center;padding:0 16px 0 64px;margin-bottom:12px;color:#fff;opacity:.92}
 .cols .cp{flex:1;font-weight:600;font-size:11px;letter-spacing:1px}
-.cols .cs{width:50px;text-align:center;font-weight:600;font-size:11px;letter-spacing:1px}
+.cols .cs{width:66px;text-align:center;font-weight:600;font-size:11px;letter-spacing:1px}
 .lbrow{display:flex;align-items:center;gap:11px;margin-bottom:12px}
 .medal{width:46px;height:46px;flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;
   font-size:24px;background:rgba(255,255,255,.85);box-shadow:0 4px 0 rgba(255,255,255,.4)}
@@ -102,9 +102,10 @@ body{background:linear-gradient(135deg,#FF8AC2,#A78BFA,#5EC9FF,#5EE7C9);backgrou
 .lbwho{flex:1;min-width:0}
 .lbnm{font-weight:700;font-size:19px;color:#3B2D5E;line-height:1}
 .lbsub{font-weight:500;font-size:11px;color:#9580B5;margin-top:2px}
-.lbstat{width:50px;text-align:center;font-weight:700;font-size:20px;color:#3B2D5E}
-.lbstat.s2{font-size:16px;color:#8A77AE}
-.lbstat.sc{font-size:16px;color:#FF5DA2}
+.lbstat{width:66px;text-align:center;font-weight:700;color:#3B2D5E}
+.lbstat.sc{font-size:27px;color:#FF5DA2}
+.lbstat.s2{font-size:17px;color:#8A77AE}
+.lbstat .u{display:block;font-size:9px;font-weight:700;color:#B6A7CE;letter-spacing:.5px;margin-top:-1px}
 .lbrow.first .lbbar{background:linear-gradient(135deg,#FFF4C2,#FFE08A);animation:bounce 1.6s ease-in-out infinite}
 .lbrow.first .medal{background:linear-gradient(135deg,#FFD93B,#FFB300);box-shadow:0 4px 0 #d99500}
 @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
@@ -154,7 +155,7 @@ body{background:linear-gradient(135deg,#FF8AC2,#A78BFA,#5EC9FF,#5EE7C9);backgrou
   <div id="boardView" class="hide">
     <div class="lbdate" id="lbdate"></div>
     <div class="lbtop" id="lbtop">let the games begin 🎉</div>
-    <div class="cols"><div class="cp">PLAYER</div><div class="cs">⭐PTS</div><div class="cs">DAYS</div><div class="cs">%</div></div>
+    <div class="cols"><div class="cp">PLAYER</div><div class="cs">RATE</div><div class="cs">PTS</div><div class="cs">DAYS</div></div>
     <div id="boardRows"></div>
     <div class="lbfoot" id="logged">🔥 0/17 days logged</div>
     <button class="sharebtn" id="shareBtn">📤 Share to the group</button>
@@ -175,15 +176,30 @@ const PEOPLE=[
 ];
 const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const DY=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const SKIP={'2026-06-06':1,'2026-06-07':1};
 function buildDays(){
   const out=[]; let d=new Date(2026,5,3); const end=new Date(2026,5,25);
   while(d<=end){
-    out.push({key:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`,
-      dd:d.getDate(),mon:MON[d.getMonth()],dy:DY[d.getDay()],wknd:(d.getDay()===0||d.getDay()===6)});
+    const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    if(!SKIP[key]) out.push({key,dd:d.getDate(),mon:MON[d.getMonth()],dy:DY[d.getDay()],wknd:(d.getDay()===0||d.getDay()===6)});
     d=new Date(d.getTime()+86400000);} return out;
 }
 const DAYS=buildDays();
-const KEY='habitgroup_v1';
+const KEY='habitgroup_v2';
+const PRELOAD={
+  '2026-06-03':{george:{values:'done',wake:'done'},chris:{med:'miss',read:'miss'},paddy:{deep:'done'}},
+  '2026-06-04':{george:{values:'done',wake:'done'},chris:{med:'done',read:'done'},paddy:{deep:'miss'}},
+  '2026-06-05':{george:{values:'done',wake:'done'},chris:{med:'done',read:'done'},paddy:{deep:'done'}},
+  '2026-06-08':{george:{values:'done',wake:'done'},chris:{med:'miss',read:'miss'},paddy:{deep:'done'}},
+  '2026-06-09':{george:{values:'done',wake:'done'},chris:{med:'miss',read:'miss'},paddy:{deep:'done'}},
+  '2026-06-10':{george:{values:'done',wake:'done'},chris:{med:'done',read:'done'},paddy:{deep:'done'}},
+  '2026-06-11':{george:{values:'done',wake:'done'},chris:{med:'miss',read:'miss'},paddy:{deep:'miss'}},
+  '2026-06-12':{george:{values:'done',wake:'done'},chris:{med:'miss',read:'miss'},paddy:{deep:'miss'}},
+  '2026-06-13':{george:{values:'done',wake:'done'},chris:{med:'miss',read:'miss'},paddy:{deep:'miss'}},
+  '2026-06-14':{george:{values:'done',wake:'done'},chris:{med:'miss',read:'miss'},paddy:{deep:'miss'}},
+  '2026-06-15':{george:{values:'done',wake:'done'},chris:{med:'done',read:'done'},paddy:{deep:'miss'},harry:{scroll:'miss'}},
+  '2026-06-16':{george:{values:'miss',wake:'miss'},chris:{med:'done',read:'done'},paddy:{deep:'miss'},harry:{scroll:'done'}},
+};
 let store={}; let selIdx=0;
 
 async function loadStore(){ try{const v=localStorage.getItem(KEY); if(v) store=JSON.parse(v);}catch(e){} }
@@ -255,33 +271,38 @@ function standings(){
       if(active.length===0||active.every(s=>s==='done')) pts++;
     });
     return {...person,pts,days,score:days?pts/days:0,denom:days};
-  }).sort((a,b)=> b.pts-a.pts || b.score-a.score || b.days-a.days);
+  }).sort((a,b)=> b.score-a.score || b.days-a.days || b.pts-a.pts);
 }
 function renderBoard(){
   const rows=standings();
   const anyData=rows.some(r=>r.denom>0);
-  const allEqual=rows.every(r=>r.pts===rows[0].pts && r.days===rows[0].days);
+  const allEqual=rows.every(r=>r.score===rows[0].score);
+  const maxS=rows[0].score, minS=rows[rows.length-1].score;
   const medals=['👑','🥈','🥉'];
   const c=document.getElementById('boardRows'); c.innerHTML='';
   rows.forEach((r,i)=>{
-    const first=anyData&&!allEqual&&i===0;
-    const payer=anyData&&!allEqual&&i===rows.length-1;
-    const el=document.createElement('div'); el.className='lbrow'+(first?' first':'')+(payer?' payer':'');
+    const first=anyData&&!allEqual&&r.score===maxS;
+    const payer=anyData&&!allEqual&&r.score===minS;
+    const el=document.createElement('div'); el.className='lbrow'+(i===0&&first?' first':'')+(payer?' payer':'');
     el.innerHTML=`<div class="medal">${medals[i]||(i+1)}</div>
       <div class="lbbar" style="--pc:${r.color}">
         <div class="lbav">${r.av}</div>
         <div class="lbwho"><div class="lbnm">${r.name} ${payer?'<span class=paytag>💸 paying</span>':''}</div><div class="lbsub">${r.sub}</div></div>
-        <div class="lbstat">${r.pts}</div>
-        <div class="lbstat s2">${r.days}</div>
         <div class="lbstat sc">${Math.round(r.score*100)}%</div>
+        <div class="lbstat s2">${r.pts}<span class="u">pts</span></div>
+        <div class="lbstat s2">${r.days}<span class="u">days</span></div>
       </div>`;
     c.appendChild(el);
   });
   const logged=DAYS.filter(d=>dayLogged(d.key)).length;
-  document.getElementById('logged').textContent=`🔥 ${logged}/${DAYS.length} days logged`;
+  document.getElementById('logged').textContent=`🔥 ${logged}/${DAYS.length} days logged · ranked by hit rate (fair on late joins)`;
   document.getElementById('lbdate').textContent=`📅 ${todayStr()}`;
   const top=document.getElementById('lbtop');
-  if(anyData&&!allEqual){ top.innerHTML=`👑 ${rows[0].name} out front · 💸 ${rows[rows.length-1].name} on dinner duty`; }
+  if(anyData&&!allEqual){
+    const leaders=rows.filter(r=>r.score===maxS).map(r=>r.name);
+    const payers=rows.filter(r=>r.score===minS).map(r=>r.name);
+    top.innerHTML=`👑 ${leaders.join(' & ')} out front · 💸 ${payers.join(' & ')} on dinner duty`;
+  }
   else { top.textContent='all square — let the games begin 🎉'; }
 }
 
@@ -301,19 +322,21 @@ function rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);
 function drawShareCard(){
   const rows=standings();
   const anyData=rows.some(r=>r.denom>0);
-  const allEqual=rows.every(r=>r.pts===rows[0].pts&&r.days===rows[0].days);
+  const allEqual=rows.every(r=>r.score===rows[0].score);
+  const maxS=rows[0].score, minS=rows[rows.length-1].score;
   const W=1080,top=250,rh=180,H=top+rows.length*rh+200;
   const cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');
   const g=x.createLinearGradient(0,0,W,H);
   ['#FF5E62','#FF9F40','#FFE15D','#37D67A','#4F8DFF','#A45DFF'].forEach((c,i,a)=>g.addColorStop(i/(a.length-1),c));
   x.fillStyle=g;x.fillRect(0,0,W,H);
   x.textAlign='center';x.fillStyle='#fff';
-  x.font='700 70px Fredoka,sans-serif';x.fillText('🏆 THE HABIT GROUP',W/2,120);
-  x.font='600 40px Fredoka,sans-serif';x.fillText('📅 '+todayStr(),W/2,182);
+  x.font='700 70px Fredoka,sans-serif';x.fillText('🏆 THE HABIT GROUP',W/2,116);
+  x.font='600 38px Fredoka,sans-serif';x.fillText('📅 '+todayStr(),W/2,174);
+  x.font='600 26px Fredoka,sans-serif';x.fillText('ranked by hit rate · fair on late joins',W/2,214);
   const medals=['👑','🥈','🥉'];
   let y=top;const cx=70,cw=W-140;
   rows.forEach((r,i)=>{
-    const first=anyData&&!allEqual&&i===0, payer=anyData&&!allEqual&&i===rows.length-1;
+    const first=anyData&&!allEqual&&i===0&&r.score===maxS, payer=anyData&&!allEqual&&r.score===minS;
     rr(x,cx,y,cw,150,30);x.fillStyle=first?'#FFF0B8':payer?'#FFDCEC':'#FFFFFF';x.fill();
     x.fillStyle=r.color;rr(x,cx,y,16,150,8);x.fill();
     x.textAlign='left';x.font='62px Fredoka,sans-serif';x.fillText(medals[i]||String(i+1),cx+34,y+98);
@@ -321,9 +344,10 @@ function drawShareCard(){
     x.fillStyle='#3B2D5E';x.font='700 48px Fredoka,sans-serif';x.fillText(r.name,cx+235,y+85);
     x.font='600 28px Fredoka,sans-serif';x.fillStyle=payer?'#E0357F':'#9580B5';
     x.fillText(payer?'💸 buying dinner':r.sub,cx+235,y+125);
-    x.textAlign='right';x.fillStyle='#3B2D5E';x.font='700 56px Fredoka,sans-serif';
-    x.fillText(r.pts+' pts',cx+cw-200,y+95);
-    x.fillStyle='#FF5DA2';x.font='600 44px Fredoka,sans-serif';x.fillText(Math.round(r.score*100)+'%',cx+cw-40,y+95);
+    x.textAlign='right';x.fillStyle='#FF5DA2';x.font='700 60px Fredoka,sans-serif';
+    x.fillText(Math.round(r.score*100)+'%',cx+cw-230,y+92);
+    x.fillStyle='#9580B5';x.font='600 34px Fredoka,sans-serif';
+    x.fillText(r.pts+' pts · '+r.days+'d',cx+cw-30,y+92);
     y+=rh;
   });
   const logged=DAYS.filter(d=>dayLogged(d.key)).length;
@@ -364,6 +388,7 @@ document.getElementById('prevDay').onclick=()=>{if(selIdx>0){selIdx--;renderDail
 document.getElementById('nextDay').onclick=()=>{if(selIdx<DAYS.length-1){selIdx++;renderDaily();}};
 (async()=>{
   await loadStore();
+  if(!Object.keys(store).length){ store=PRELOAD; await saveStore(); }
   const tk=austinKey();
   const idx=DAYS.findIndex(d=>d.key===tk); if(idx>=0) selIdx=idx;
   renderDaily(); renderBoard();
